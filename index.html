@@ -6,74 +6,66 @@
     <title>3D 5v5 FPS Melee Arena MOBA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; }
-        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: #000; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; cursor: crosshair; }
         
-        /* Tâm ngắm (Crosshair) */
         #crosshair {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 16px; height: 16px;
+            width: 14px; height: 14px;
             border: 2px solid rgba(255, 255, 255, 0.8);
             border-radius: 50%; pointer-events: none; z-index: 10;
         }
         #crosshair::after {
-            content: ''; position: absolute; top: 5px; left: 5px;
+            content: ''; position: absolute; top: 4px; left: 4px;
             width: 2px; height: 2px; background: #ff0055; border-radius: 50%;
         }
 
-        /* Bảng điểm HUD trên */
         .hud-top {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 30px; align-items: center; z-index: 10;
             background: rgba(15, 23, 42, 0.85); padding: 12px 30px;
-            border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff;
+            border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); color: #fff;
         }
-        .score-box { font-size: 20px; font-weight: 800; text-transform: uppercase; }
-        .score-blue { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-        .score-red { color: #f43f5e; text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
-        .timer { font-size: 28px; font-weight: 900; color: #facc15; font-mono: monospace; }
+        .score-box { font-size: 20px; font-weight: 800; }
+        .score-blue { color: #38bdf8; }
+        .score-red { color: #f43f5e; }
+        .timer { font-size: 28px; font-weight: 900; color: #facc15; }
 
-        /* HUD Thanh máu góc dưới */
         .hud-bottom {
             position: absolute; bottom: 25px; left: 25px; z-index: 10;
             background: rgba(15, 23, 42, 0.85); padding: 16px; border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.15); width: 280px; color: #fff;
         }
         .hp-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
-        .hp-bar-bg { width: 100%; height: 16px; background: #1e293b; border-radius: 8px; overflow: hidden; border: 1px solid #475569; }
-        .hp-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.15s ease-out; }
+        .hp-bar-bg { width: 100%; height: 16px; background: #1e293b; border-radius: 8px; overflow: hidden; }
+        .hp-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.15s; }
 
-        /* Khai báo Kỹ năng */
         .skills-container { position: absolute; bottom: 25px; right: 25px; z-index: 10; display: flex; gap: 12px; }
         .skill-btn {
             width: 72px; height: 72px; background: rgba(15, 23, 42, 0.85);
-            border: 2px solid #475569; border-radius: 14px; display: flex;
+            border: 2px solid #38bdf8; border-radius: 14px; display: flex;
             flex-direction: column; align-items: center; justify-content: center;
-            color: #fff; font-weight: bold; cursor: pointer; position: relative;
+            color: #fff; font-weight: bold; position: relative;
         }
-        .skill-btn small { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+        .skill-btn small { font-size: 10px; color: #94a3b8; }
         .cooldown-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); border-radius: 12px; display: none;
             align-items: center; justify-content: center; font-size: 22px; color: #facc15; font-weight: 900;
         }
 
-        /* Thông báo Target Lock */
-        #target-banner {
-            position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
-            color: #fbbf24; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.7);
-            padding: 6px 18px; border-radius: 20px; display: none; z-index: 10;
-            border: 1px solid rgba(251, 191, 36, 0.4); text-transform: uppercase; letter-spacing: 1px;
+        #guide-msg {
+            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+            color: #38bdf8; background: rgba(0,0,0,0.7); padding: 8px 16px;
+            border-radius: 20px; font-weight: bold; z-index: 10; font-size: 14px;
         }
     </style>
-    <!-- Thư viện Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <div id="crosshair"></div>
-    <div id="target-banner">🎯 ĐÃ KHÓA TIÊU ĐIỂM - TỰ QUAY LẠI ĐÁNH</div>
+    <div id="guide-msg">DÙNG PHÍM [W-A-S-D] ĐỂ DI CHUYỂN | BẤM CHUỘT ĐỂ XOAY GÓC NHÌN & ĐÁNH</div>
 
     <div class="hud-top">
         <div class="score-box score-blue">XANH: <span id="blue-kills">0</span>/30</div>
@@ -90,9 +82,9 @@
     </div>
 
     <div class="skills-container">
-        <div class="skill-btn" style="border-color:#38bdf8;">
+        <div class="skill-btn">
             <span>ĐÁNH</span>
-            <small>CLICK CHUỘT</small>
+            <small>[CLICK / SPACE]</small>
         </div>
         <div class="skill-btn" id="btn-heal" style="border-color:#10b981;">
             <span>HỒI MÁU</span>
@@ -104,34 +96,28 @@
     <div id="canvas-container"></div>
 
     <script>
-        // --- GAME LOGIC CODE ---
-        const CONFIG = {
-            MAX_HP: 100,
-            DAMAGE: 20,
-            HEAL_AMOUNT: 50,
-            HEAL_CD: 10,
-            WIN_KILLS: 30,
-            MATCH_TIME: 300
-        };
+        const CONFIG = { MAX_HP: 100, DAMAGE: 20, HEAL_AMOUNT: 50, HEAL_CD: 10, MATCH_TIME: 300 };
 
-        let scene, camera, renderer, raycaster, mouse;
+        let scene, camera, renderer, raycaster;
         let player, playerFist;
         let targetsList = [];
         let kills = { blue: 0, red: 0 };
         let matchTime = CONFIG.MATCH_TIME;
-        let lockedTarget = null;
         let healCooldown = 0;
         let isAttacking = false;
+
+        // Trạng thái phím di chuyển
+        const keys = { w: false, a: false, s: false, d: false };
+        let yaw = 0, pitch = 0; // Góc xoay camera
 
         function initGame() {
             const container = document.getElementById('canvas-container');
 
-            // 1. Scene & Camera 3D Góc Nhìn Thứ Nhất
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0f172a);
-            scene.fog = new THREE.FogExp2(0x0f172a, 0.012);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.015);
 
-            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -140,34 +126,24 @@
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
 
-            // 2. Ánh sáng
-            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambient);
-
+            // Ánh sáng
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const sun = new THREE.DirectionalLight(0xffffff, 0.8);
             sun.position.set(40, 60, 20);
-            sun.castShadow = true;
             scene.add(sun);
 
-            // 3. Bản đồ & Trụ & Lính
+            // Bản đồ, Trụ, Địch
             buildMap();
             spawnTowers();
             spawnHeroes();
 
-            // 4. Tạo Nhân vật Người chơi (Đội Xanh)
-            player = {
-                mesh: new THREE.Group(),
-                hp: CONFIG.MAX_HP,
-                team: 'blue',
-                speed: 0.18,
-                range: 3.0
-            };
+            // Tạo Player
+            player = { mesh: new THREE.Group(), hp: CONFIG.MAX_HP, team: 'blue', speed: 0.25, range: 3.5 };
             player.mesh.position.set(0, 1.5, 30);
             scene.add(player.mesh);
 
-            // Nắm đấm FPS Góc nhìn thứ nhất
+            // Tay đấm
             const fistGeo = new THREE.BoxGeometry(0.25, 0.25, 0.6);
             const fistMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
             playerFist = new THREE.Mesh(fistGeo, fistMat);
@@ -175,129 +151,160 @@
             camera.add(playerFist);
             player.mesh.add(camera);
 
-            // 5. Sự kiện Điều khiển
+            // Bắt sự kiện bàn phím & chuột
             window.addEventListener('resize', onWindowResize);
-            window.addEventListener('pointerdown', onPointerDown);
-            window.addEventListener('keydown', (e) => {
-                if (e.key.toLowerCase() === 'e') triggerHeal();
+            window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('keyup', onKeyUp);
+            
+            // Khóa chuột khi click vào màn hình để quay góc nhìn bằng chuột
+            container.addEventListener('click', () => {
+                container.requestPointerLock();
+                performAttack();
             });
 
-            // Đồng hồ đếm ngược
-            setInterval(updateTimer, 1000);
+            document.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === container) {
+                    yaw -= e.movementX * 0.002;
+                    pitch -= e.movementY * 0.002;
+                    pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
 
-            // Render loop
+                    player.mesh.rotation.y = yaw;
+                    camera.rotation.x = pitch;
+                }
+            });
+
+            setInterval(updateTimer, 1000);
             animate();
         }
 
         function buildMap() {
-            // Mặt đất Arena
-            const groundGeo = new THREE.PlaneGeometry(120, 120);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
-            const ground = new THREE.Mesh(groundGeo, groundMat);
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(120, 120),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b })
+            );
             ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
             scene.add(ground);
 
-            // Đường Làn (Lane chính)
-            const laneGeo = new THREE.PlaneGeometry(20, 120);
-            const laneMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
-            const lane = new THREE.Mesh(laneGeo, laneMat);
+            const lane = new THREE.Mesh(
+                new THREE.PlaneGeometry(20, 120),
+                new THREE.MeshStandardMaterial({ color: 0x334155 })
+            );
             lane.rotation.x = -Math.PI / 2;
             lane.position.y = 0.02;
             scene.add(lane);
         }
 
         function spawnTowers() {
-            createTower(0, -20, 'red');   // Trụ Đỏ
-            createTower(0, 20, 'blue');   // Trụ Xanh
+            createTower(0, -20, 'red');
+            createTower(0, 20, 'blue');
         }
 
         function createTower(x, z, team) {
             const group = new THREE.Group();
-            const geo = new THREE.CylinderGeometry(1.5, 2, 8, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: team === 'blue' ? 0x0284c7 : 0xe11d48 });
-            const mesh = new THREE.Mesh(geo, mat);
+            const mesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.5, 2, 8, 16),
+                new THREE.MeshStandardMaterial({ color: team === 'blue' ? 0x0284c7 : 0xe11d48 })
+            );
             mesh.position.y = 4;
-            mesh.castShadow = true;
             group.add(mesh);
             group.position.set(x, 0, z);
-
-            group.userData = { id: Math.random(), hp: 300, maxHp: 300, team: team, type: 'tower' };
+            group.userData = { hp: 300, team: team };
             scene.add(group);
             targetsList.push(group);
         }
 
         function spawnHeroes() {
-            // 4 Đồng đội Xanh
             for (let i = 0; i < 4; i++) createEntity('blue', -12 + i * 8, 25);
-            // 5 Địch Đỏ
             for (let i = 0; i < 5; i++) createEntity('red', -16 + i * 8, -25);
         }
 
         function createEntity(team, x, z) {
             const group = new THREE.Group();
-            const geo = new THREE.CylinderGeometry(0.6, 0.6, 2, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: team === 'blue' ? 0x38bdf8 : 0xf43f5e });
-            const mesh = new THREE.Mesh(geo, mat);
+            const mesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 0.6, 2, 16),
+                new THREE.MeshStandardMaterial({ color: team === 'blue' ? 0x38bdf8 : 0xf43f5e })
+            );
             mesh.position.y = 1;
-            mesh.castShadow = true;
             group.add(mesh);
             group.position.set(x, 0, z);
-
-            group.userData = { id: Math.random(), hp: 100, maxHp: 100, team: team, type: 'hero' };
+            group.userData = { hp: 100, team: team };
             scene.add(group);
             targetsList.push(group);
         }
 
-        // Tự động xoay & Tấn công khi nhấp chuột chọn mục tiêu
-        function onPointerDown(event) {
-            // Bỏ qua nếu click vào UI
-            if (event.clientY > window.innerHeight - 100 && event.clientX > window.innerWidth - 200) return;
+        function onKeyDown(e) {
+            const k = e.key.toLowerCase();
+            if (k === 'w') keys.w = true;
+            if (k === 's') keys.s = true;
+            if (k === 'a') keys.a = true;
+            if (k === 'd') keys.d = true;
+            if (k === ' ') performAttack();
+            if (k === 'e') triggerHeal();
+        }
 
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        function onKeyUp(e) {
+            const k = e.key.toLowerCase();
+            if (k === 'w') keys.w = false;
+            if (k === 's') keys.s = false;
+            if (k === 'a') keys.a = false;
+            if (k === 'd') keys.d = false;
+        }
 
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
+        function performAttack() {
+            if (isAttacking) return;
+            isAttacking = true;
 
-            for (let hit of intersects) {
-                let current = hit.object;
-                while (current.parent && current.parent !== scene) {
-                    current = current.parent;
-                }
-                
-                if (current.userData && current.userData.team && current.userData.team !== player.team) {
-                    lockedTarget = current;
-                    document.getElementById('target-banner').style.display = 'block';
-                    return;
+            // Animation Đấm
+            playerFist.position.z = -0.2;
+            setTimeout(() => {
+                playerFist.position.z = -0.5;
+                isAttacking = false;
+            }, 150);
+
+            // Kiểm tra đòn đánh trúng địch ở giữa tâm ngắm
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const hits = raycaster.intersectObjects(scene.children, true);
+
+            for (let hit of hits) {
+                let obj = hit.object;
+                while (obj.parent && obj.parent !== scene) obj = obj.parent;
+
+                if (obj.userData && obj.userData.team && obj.userData.team !== player.team) {
+                    if (hit.distance <= player.range) {
+                        obj.userData.hp -= CONFIG.DAMAGE;
+                        if (obj.userData.hp <= 0) {
+                            scene.remove(obj);
+                            targetsList = targetsList.filter(t => t !== obj);
+                            kills.blue++;
+                            document.getElementById('blue-kills').innerText = kills.blue;
+                        }
+                    }
+                    break;
                 }
             }
         }
 
         function triggerHeal() {
             if (healCooldown > 0) return;
-
             player.hp = Math.min(CONFIG.MAX_HP, player.hp + CONFIG.HEAL_AMOUNT);
             updateHUD();
 
             healCooldown = CONFIG.HEAL_CD;
             const cdOverlay = document.getElementById('cd-heal');
             cdOverlay.style.display = 'flex';
-            cdOverlay.innerText = healCooldown;
 
-            const interval = setInterval(() => {
+            const timer = setInterval(() => {
                 healCooldown--;
                 cdOverlay.innerText = healCooldown;
                 if (healCooldown <= 0) {
-                    clearInterval(interval);
+                    clearInterval(timer);
                     cdOverlay.style.display = 'none';
                 }
             }, 1000);
         }
 
         function updateHUD() {
-            const percentage = (player.hp / CONFIG.MAX_HP) * 100;
-            document.getElementById('player-hp').style.width = percentage + '%';
+            document.getElementById('player-hp').style.width = (player.hp / CONFIG.MAX_HP * 100) + '%';
             document.getElementById('hp-text').innerText = `${player.hp} / ${CONFIG.MAX_HP}`;
         }
 
@@ -312,46 +319,16 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Xử lý di chuyển & Đánh tự động khi ĐÃ KHÓA MỤC TIÊU
-            if (lockedTarget && lockedTarget.userData.hp > 0) {
-                const playerPos = player.mesh.position;
-                const targetPos = lockedTarget.position;
-                const distance = playerPos.distanceTo(targetPos);
+            // Di chuyển nhân vật dựa theo phím W-A-S-D và hướng mặt
+            const moveVector = new THREE.Vector3();
+            if (keys.w) moveVector.z -= 1;
+            if (keys.s) moveVector.z += 1;
+            if (keys.a) moveVector.x -= 1;
+            if (keys.d) moveVector.x += 1;
 
-                // 1. Tự quay mặt về phía mục tiêu
-                player.mesh.lookAt(targetPos.x, playerPos.y, targetPos.z);
-
-                // 2. Tiến lại gần hoặc tung đòn đánh
-                if (distance > player.range) {
-                    const dir = new THREE.Vector3().subVectors(targetPos, playerPos).normalize();
-                    playerPos.addScaledVector(dir, player.speed);
-                } else {
-                    // Đã vào tầm đánh cận chiến -> Đấm
-                    if (!isAttacking) {
-                        isAttacking = true;
-                        
-                        // Hiệu ứng đấm FPS
-                        playerFist.position.z = -0.2;
-                        setTimeout(() => {
-                            playerFist.position.z = -0.5;
-                            isAttacking = false;
-                        }, 200);
-
-                        // Trừ máu
-                        lockedTarget.userData.hp -= CONFIG.DAMAGE;
-
-                        if (lockedTarget.userData.hp <= 0) {
-                            scene.remove(lockedTarget);
-                            targetsList = targetsList.filter(t => t !== lockedTarget);
-                            
-                            kills.blue++;
-                            document.getElementById('blue-kills').innerText = kills.blue;
-                            
-                            lockedTarget = null;
-                            document.getElementById('target-banner').style.display = 'none';
-                        }
-                    }
-                }
+            if (moveVector.lengthSq() > 0) {
+                moveVector.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                player.mesh.position.addScaledVector(moveVector, player.speed);
             }
 
             renderer.render(scene, camera);
@@ -363,7 +340,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Tự động kích hoạt khi trang tải xong
         window.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
